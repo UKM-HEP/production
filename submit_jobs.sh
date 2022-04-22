@@ -1,8 +1,25 @@
 #!/bin/bash
 
+set -e
+
+CWD=${PWD}
+
 # Define path for job directories
-BASE_PATH=/path/to/job/directory
+BASE_PATH="${PWD}/prod"
 mkdir -p $BASE_PATH
+
+#voms-proxy-init -voms cms -valid 172:00
+if [ -e "${PWD}/AOD2NanoAOD" ];then
+    cd AOD2NanoAOD
+    git pull origin main
+    cd ${CWD}
+else
+    git clone https://github.com/UKM-HEP/AOD2NanoAODOutreachTool.git AOD2NanoAOD
+fi
+
+#creating tarball
+echo "Tarring up submit..."
+tar -chzf AOD2NanoAOD.tgz AOD2NanoAOD
 
 # Set processes
 PROCESSES=( \
@@ -15,7 +32,7 @@ PROCESSES=( \
     #TTbar \
     #W1JetsToLNu \
     #W2JetsToLNu \
-    #W3JetsToLNu \
+    W3JetsToLNu \
     #DYJetsToLL \
     #Run2012B_TauPlusX\
     #Run2012C_TauPlusX\
@@ -37,10 +54,12 @@ do
 done
 
 # Submit jobs
-THIS_PWD=$PWD
-for PROCESS in ${PROCESSES[@]}
-do
-    cd $BASE_PATH/$PROCESS
-    condor_submit job.jdl
-    cd $THIS_PWD
-done
+#THIS_PWD=$PWD
+#for PROCESS in ${PROCESSES[@]}
+#do
+#    cd $BASE_PATH/$PROCESS
+#    condor_submit job.jdl
+#    cd $THIS_PWD
+#done
+
+rm -rf AOD2NanoAOD  AOD2NanoAOD.tgz

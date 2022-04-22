@@ -3,8 +3,6 @@
 # Exit on error
 set -e
 
-export BASEDIR=`pwd`
-
 echo "### Begin of job"
 
 ID=$1
@@ -16,20 +14,20 @@ echo "Process:" $PROCESS
 FILE=$3
 echo "File:" $FILE
 
-USER_=${USER}
-
-EOS_HOME=/eos/${USER_:0:1}/${USER_}
+EOS_HOME=/eos/user/FIRST_LETTER/USERNAME
 echo "EOS home:" $EOS_HOME
 
-# root://cmseos.fnal.gov//store/user/shoh/nanoaod/${PROCESS}/${outfilename}_nanoaod.root
-#AAAX=root://cmseos.fnal.gov/
-OUTPUT_DIR=${EOS_HOME}/opendata_files
+OUTPUT_DIR=${EOS_HOME}/opendata_files/
 echo "Output directory:" $OUTPUT_DIR
 
-# inside docker
-CMSSW_BASE=/home/cmsusr/CMSSW_5_3_32
+CMSSW_BASE=/afs/cern.ch/work/FIRST_LETTER/USERNAME/CMSSW_5_3_32
 echo "CMSSW base:" $CMSSW_BASE
 
+if [[ ${FILE} == *"Run2012"* ]]; then
+    CONFIG=${CMSSW_BASE}/src/workspace/AOD2NanoAOD/configs/data_cfg.py
+else
+    CONFIG=${CMSSW_BASE}/src/workspace/AOD2NanoAOD/configs/simulation_cfg.py
+fi
 echo "CMSSW config:" $CONFIG
 
 echo "Hostname:" `hostname`
@@ -48,19 +46,12 @@ ls -la $EOS_HOME
 # Make output directory
 mkdir -p ${OUTPUT_DIR}/${PROCESS}
 
-# Prepare EDMAnalyzer
+# Setup CMSSW
 THIS_DIR=$PWD
-cd ${CMSSW_BASE}/src
-scp ${BASEDIR}/AOD2NanoAOD.tgz $CMSSW_BASE/src
-tar xvaf submit.tgz
+cd $CMSSW_BASE
+source /cvmfs/cms.cern.ch/cmsset_default.sh
 eval `scramv1 runtime -sh`
 cd $THIS_DIR
-
-if [[ ${FILE} == *"Run2012"* ]]; then
-    CONFIG=${CMSSW_BASE}/src/workspace/AOD2NanoAOD/configs/data_cfg.py
-else
-    CONFIG=${CMSSW_BASE}/src/workspace/AOD2NanoAOD/configs/simulation_cfg.py
-fi
 
 # Copy config file
 mkdir -p configs/

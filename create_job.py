@@ -4,17 +4,23 @@
 import os
 import sys
 
+# https://batchdocs.web.cern.ch/tutorial/exercise9a.html
+# https://htcondor.readthedocs.io/en/latest/users-manual/docker-universe-applications.html
 
 jdl = """\
-universe = vanilla
-executable = ./{PROCESS}.sh
-output = out/$(ProcId).$(ClusterID).out
-error = err/$(ProcId).$(ClusterID).err
-log = log/$(ProcId).$(ClusterID).log
-requirements = (OpSysAndVer =?= "SLCern6")
-max_retries = 3
-RequestCpus = 1
-+MaxRuntime = 1800
+universe                = docker
+docker_image            = docker.io/siewyanhoh/cmssw_5_3_32-slc6_amd64_gcc472
+executable              = ./{PROCESS}.sh
+output                  = out/$(ProcId).$(ClusterID).out
+error                   = err/$(ProcId).$(ClusterID).err
+log                     = log/$(ProcId).$(ClusterID).log
+requirements            = (OpSysAndVer =?= "SLCern6")
+transfer_input_files    = AOD2NanoAOD.tgz
+should_transfer_files   = YES
+when_to_transfer_output = ON_EXIT
+max_retries             = 3
+RequestCpus             = 4
++MaxRuntime             = 1800
 queue arguments from arguments.txt\
 """
 
@@ -38,10 +44,10 @@ def main(args):
     print("Filelist:")
     arguments = []
     counter = 0
-    for filename in os.listdir("data/"):
+    for filename in os.listdir("samples/"):
         if process in filename:
             print("    %s." % filename)
-            for line in open("data/" + filename, "r").readlines():
+            for line in open("samples/" + filename, "r").readlines():
                 arguments.append("%u %s %s" % (counter, process, line))
                 counter += 1
     print("Number of jobs: %u" % len(arguments))
