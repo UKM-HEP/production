@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 
-
 import os
 import sys
 
 # https://batchdocs.web.cern.ch/tutorial/exercise9a.html
 # https://htcondor.readthedocs.io/en/latest/users-manual/docker-universe-applications.html
+
+#+JobFlavour = "longlunch"
+#espresso     = 20 minutes
+#microcentury = 1 hour
+#longlunch    = 2 hours
+#workday      = 8 hours
+#tomorrow     = 1 day
+#testmatch    = 3 days
+#nextweek     = 1 week
 
 jdl = """\
 universe                = docker
@@ -14,7 +22,7 @@ executable              = ./{PROCESS}.sh
 output                  = out/$(ProcId).$(ClusterID).out
 error                   = err/$(ProcId).$(ClusterID).err
 log                     = log/$(ProcId).$(ClusterID).log
-requirements            = (OpSysAndVer =?= "SLCern6")
+requirements            = OpSysAndVer =?= "CentOS7"
 transfer_input_files    = AOD2NanoAOD.tgz
 should_transfer_files   = YES
 when_to_transfer_output = ON_EXIT

@@ -8,7 +8,7 @@ CWD=${PWD}
 BASE_PATH="${PWD}/prod"
 mkdir -p $BASE_PATH
 
-#voms-proxy-init -voms cms -valid 172:00
+voms-proxy-init -voms cms -valid 172:00
 if [ -e "${PWD}/AOD2NanoAOD" ];then
     cd AOD2NanoAOD
     git pull origin main
@@ -32,7 +32,7 @@ PROCESSES=( \
     #TTbar \
     #W1JetsToLNu \
     #W2JetsToLNu \
-    W3JetsToLNu \
+    #W3JetsToLNu \
     #DYJetsToLL \
     #Run2012B_TauPlusX\
     #Run2012C_TauPlusX\
@@ -45,12 +45,14 @@ PROCESSES=( \
     #Run2012C_DoubleMuParked \
     #Run2012B_DoubleElectron \
     #Run2012C_DoubleElectron \
+    testfile \
     )
 
 # Create JDL files and job directories
 for PROCESS in ${PROCESSES[@]}
 do
     python create_job.py $PROCESS $BASE_PATH
+    scp AOD2NanoAOD.tgz $BASE_PATH/$PROCESS
 done
 
 # Submit jobs
