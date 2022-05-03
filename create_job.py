@@ -6,7 +6,6 @@ import sys
 # https://batchdocs.web.cern.ch/tutorial/exercise9a.html
 # https://htcondor.readthedocs.io/en/latest/users-manual/docker-universe-applications.html
 
-#+JobFlavour = "longlunch"
 #espresso     = 20 minutes
 #microcentury = 1 hour
 #longlunch    = 2 hours
@@ -15,20 +14,44 @@ import sys
 #testmatch    = 3 days
 #nextweek     = 1 week
 
+#+JobFlavour = "longlunch"
+#+MaxRuntime = 1800
+
+# docker
 jdl = """\
 universe                = docker
-docker_image            = docker.io/siewyanhoh/cmssw_5_3_32-slc6_amd64_gcc472
+docker_image            = docker.io/siewyanhoh/cmssw_5_3_32-condor
 executable              = ./{PROCESS}.sh
 output                  = out/$(ProcId).$(ClusterID).out
 error                   = err/$(ProcId).$(ClusterID).err
 log                     = log/$(ProcId).$(ClusterID).log
 requirements            = OpSysAndVer =?= "CentOS7"
-transfer_input_files    = AOD2NanoAOD.tgz
+transfer_input_files    = AOD2NanoAOD.tgz, x509up
 should_transfer_files   = YES
 when_to_transfer_output = ON_EXIT
 max_retries             = 3
-RequestCpus             = 4
+request_memory          = 4000M
+request_disk            = 4000000K
+request_cpus            = 4
 +MaxRuntime             = 1800
+queue arguments from arguments.txt\
+"""
+
+# singularity
+jdl2 = """\
+universe                = vanilla
+executable              = singularity_exec.sh
+should_transfer_files   = YES
+transfer_input_files    = AOD2NanoAOD.tgz, {PROCESS}.sh, x509up
+when_to_transfer_output = ON_EXIT
+output                  = out/$(ProcId).$(ClusterID).out
+error                   = err/$(ProcId).$(ClusterID).err
+log                     = log/$(ProcId).$(ClusterID).log
+max_retries             = 3
+request_memory          = 4000M
+request_disk            = 4000000K
+request_cpus            = 4
++JobFlavour             = "longlunch"
 queue arguments from arguments.txt\
 """
 
@@ -39,9 +62,9 @@ def mkdir(path):
 
 
 def parse_arguments():
-    if not len(sys.argv) == 3:
-        raise Exception("./create_job.py PROCESS PATH_TO_JOBDIR")
-    return {"process": sys.argv[1], "jobdir": sys.argv[2]}
+    if not len(sys.argv) == 4:
+        raise Exception("./create_job.py PROCESS PATH_TO_JOBDIR True")
+    return {"process": sys.argv[1], "jobdir": sys.argv[2], "jobtype": sys.argv[3]}
 
 
 def main(args):
@@ -70,7 +93,7 @@ def main(args):
 
     # Write jdl file
     out = open(os.path.join(jobdir, "job.jdl"), "w")
-    out.write(jdl.format(PROCESS=process))
+    out.write(jdl.format(PROCESS=process) if args["jobtype"] !="1" else jdl2.format(PROCESS=process))
     out.close()
 
     # Write argument list
@@ -80,11 +103,22 @@ def main(args):
     arglist.close()
 
     # Write job file
-    jobfile = open("job.sh", "r").read()
+    jobfile = open("job.sh", "rt").read()
+    jobfile = jobfile.replace('XX_U_XX', os.environ['USER'][0])
+    jobfile = jobfile.replace('XX_USER_XX', os.environ['USER'])
     job = open(os.path.join(jobdir, "{PROCESS}.sh".format(PROCESS=process)), "w")
     job.write(jobfile)
     job.close()
 
+    # copy the singularity execution file
+    if args["jobtype"] == "1" :
+        sexec = open("singularity_exec.sh", "rt").read()
+        sexec = sexec.replace('XX_PROCESS_XX', process)
+        execf = open(os.path.join( jobdir , "singularity_exec.sh" ), "w") 
+        execf.write(sexec)
+        execf.close()
+
+        os.system("chmod +x %s" %(os.path.join(jobdir, "{PROCESS}.sh".format(PROCESS=process))) )
 
 if __name__ == "__main__":
     args = parse_arguments()

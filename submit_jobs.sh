@@ -2,6 +2,10 @@
 
 set -e
 
+# 0 : docker
+# 1 : singularity
+JOBTYPE="1"
+
 CWD=${PWD}
 
 # Define path for job directories
@@ -9,6 +13,7 @@ BASE_PATH="${PWD}/prod"
 mkdir -p $BASE_PATH
 
 voms-proxy-init -voms cms -valid 172:00
+
 if [ -e "${PWD}/AOD2NanoAOD" ];then
     cd AOD2NanoAOD
     git pull origin main
@@ -25,7 +30,7 @@ tar -chzf AOD2NanoAOD.tgz AOD2NanoAOD
 PROCESSES=( \
     #SMHiggsToZZTo4L \
     #ZZTo2e2mu \
-    #ZZTo4mu \
+    ZZTo4mu \
     #ZZTo4e \
     #GluGluToHToTauTau \
     #VBF_HToTauTau \
@@ -45,23 +50,24 @@ PROCESSES=( \
     #Run2012C_DoubleMuParked \
     #Run2012B_DoubleElectron \
     #Run2012C_DoubleElectron \
-    testfile \
+    #testfile \
     )
 
 # Create JDL files and job directories
 for PROCESS in ${PROCESSES[@]}
 do
-    python create_job.py $PROCESS $BASE_PATH
+    python create_job.py $PROCESS $BASE_PATH $JOBTYPE
     scp AOD2NanoAOD.tgz $BASE_PATH/$PROCESS
+    scp /tmp/x509up_u$(id -u) $BASE_PATH/$PROCESS/x509up
 done
 
 # Submit jobs
-#THIS_PWD=$PWD
-#for PROCESS in ${PROCESSES[@]}
-#do
-#    cd $BASE_PATH/$PROCESS
-#    condor_submit job.jdl
-#    cd $THIS_PWD
-#done
+THIS_PWD=$PWD
+for PROCESS in ${PROCESSES[@]}
+do
+    cd $BASE_PATH/$PROCESS
+    condor_submit job.jdl
+    cd $THIS_PWD
+done
 
 rm -rf AOD2NanoAOD  AOD2NanoAOD.tgz
