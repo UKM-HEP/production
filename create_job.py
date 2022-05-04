@@ -82,11 +82,11 @@ def main(args):
     print("Filelist:")
     arguments = []
     counter = 0
-    for filename in os.listdir("samples/%s" %com):
+    for filename in os.listdir("datasets/%s" %com):
         if process in filename:
             process_fn=filename
             print("    %s." % filename)
-            for line in open("samples/%s/%s" %(com,filename), "r").readlines():
+            for line in open("datasets/%s/%s" %(com,filename), "r").readlines():
                 arguments.append("%u %s %s" % (counter, process, line))
                 counter += 1
     print("Number of jobs: %u" % len(arguments))
