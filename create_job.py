@@ -3,6 +3,8 @@
 import os
 import sys
 
+from gt import globaltag as GT
+
 # https://batchdocs.web.cern.ch/tutorial/exercise9a.html
 # https://htcondor.readthedocs.io/en/latest/users-manual/docker-universe-applications.html
 
@@ -62,29 +64,45 @@ def mkdir(path):
 
 
 def parse_arguments():
-    if not len(sys.argv) == 4:
-        raise Exception("./create_job.py PROCESS PATH_TO_JOBDIR True")
-    return {"process": sys.argv[1], "jobdir": sys.argv[2], "jobtype": sys.argv[3]}
+    if not len(sys.argv) == 6:
+        raise Exception("./create_job.py PROCESS PATH_TO_JOBDIR JOBTYPE GLOBALTAG COM")
+    return {"process": sys.argv[1], "jobdir": sys.argv[2], "jobtype": sys.argv[3], "globaltag": sys.argv[4], "com": sys.argv[5]}
 
 
 def main(args):
     process = args["process"]
     print("Process: %s" % process)
 
+    datatype="DATA" if 'Run' in process else "MC"
+    process_fn=""
+
+    com = args["com"]
     # Build argument list
+    print("Centre of Mass Energy : %s" %com)
     print("Filelist:")
     arguments = []
     counter = 0
-    for filename in os.listdir("samples/"):
+    for filename in os.listdir("samples/%s" %com):
         if process in filename:
+            process_fn=filename
             print("    %s." % filename)
-            for line in open("samples/" + filename, "r").readlines():
+            for line in open("samples/%s/%s" %(com,filename), "r").readlines():
                 arguments.append("%u %s %s" % (counter, process, line))
                 counter += 1
     print("Number of jobs: %u" % len(arguments))
+    
+    print("process_fn : ", process_fn)
+    year= process_fn.split("_")[1][3:7] if datatype == "DATA" else process_fn.split("_")[1][-4:]
+    gtkey=GT[year+"pp"][datatype]
+
+    if com == "7TeV" or com == "8TeV":
+        era="RunI"
+    else:
+        era="RunII"
 
     # Create jobdir and subdirectories
     jobdir = os.path.join(args["jobdir"], process)
+    prod_name = args["jobdir"].split('/')[-1]
     print("Jobdir: %s" % jobdir)
     mkdir(jobdir)
     mkdir(os.path.join(jobdir, "out"))
@@ -106,6 +124,12 @@ def main(args):
     jobfile = open("job.sh", "rt").read()
     jobfile = jobfile.replace('XX_U_XX', os.environ['USER'][0])
     jobfile = jobfile.replace('XX_USER_XX', os.environ['USER'])
+    jobfile = jobfile.replace('XX_ERA_XX' , era )
+    jobfile = jobfile.replace('XX_COM_XX' , com )
+    jobfile = jobfile.replace('XX_PRODNAME_XX' , prod_name )
+    if args["globaltag"] == "True": 
+        jobfile = jobfile.replace('GT=\"None\"' , 'GT=\"%s\"' %gtkey )
+        jobfile = jobfile.replace('XX_GLOBALTAG_XX' , gtkey )
     job = open(os.path.join(jobdir, "{PROCESS}.sh".format(PROCESS=process)), "w")
     job.write(jobfile)
     job.close()

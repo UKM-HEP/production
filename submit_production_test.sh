@@ -6,10 +6,22 @@ set -e
 # 1 : singularity
 JOBTYPE="1"
 
+# True : use global tag
+# False : no global tag
+GLOBALTAG="True"
+
+# 7TeV
+# 8TeV
+# 13TeV
+COM="8TeV"
+
+# Production name
+PRODNAME="production_test"
+
 CWD=${PWD}
 
 # Define path for job directories
-BASE_PATH="${PWD}/prod"
+BASE_PATH="${PWD}/${PRODNAME}"
 mkdir -p $BASE_PATH
 
 voms-proxy-init -voms cms -valid 172:00
@@ -30,7 +42,7 @@ tar -chzf AOD2NanoAOD.tgz AOD2NanoAOD
 PROCESSES=( \
     #SMHiggsToZZTo4L \
     #ZZTo2e2mu \
-    ZZTo4mu \
+    #ZZTo4mu \
     #ZZTo4e \
     #GluGluToHToTauTau \
     #VBF_HToTauTau \
@@ -50,13 +62,15 @@ PROCESSES=( \
     #Run2012C_DoubleMuParked \
     #Run2012B_DoubleElectron \
     #Run2012C_DoubleElectron \
-    #testfile \
+    #test_ZZTo4e_8TeV-powheg-pythia6_onefile \
+    Run2012B_DoubleElectro_test_onefile \
+    test_ZZTo4e_8TeV-powheg-pythia6_onefile \
     )
 
 # Create JDL files and job directories
 for PROCESS in ${PROCESSES[@]}
 do
-    python create_job.py $PROCESS $BASE_PATH $JOBTYPE
+    python create_job.py $PROCESS $BASE_PATH $JOBTYPE $GLOBALTAG $COM
     scp AOD2NanoAOD.tgz $BASE_PATH/$PROCESS
     scp /tmp/x509up_u$(id -u) $BASE_PATH/$PROCESS/x509up
 done

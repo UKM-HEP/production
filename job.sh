@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#set -e
+set -e
 
 echo "### Begin of job"
 
@@ -17,13 +17,18 @@ PROCESS=$2
 echo "Process          : " $PROCESS
 FILE=$3
 echo "File             : " $FILE
+echo "Production Name  : XX_PRODNAME_XX" 
+GT="None"
+echo "Global Tag       : " $GT
+echo "Era              : XX_ERA_XX"
+echo "COM              : XX_COM_XX" 
 EOS_HOME=/eos/user/XX_U_XX/XX_USER_XX
 echo "EOS home         : " $EOS_HOME
-OUTPUT_DIR=${EOS_HOME}/opendata_files
+OUTPUT_DIR=${EOS_HOME}/cmsopendata/XX_PRODNAME_XX/XX_ERA_XX/XX_COM_XX
 echo "Output directory : " $OUTPUT_DIR
 echo "voms-proxy-info  : "
 voms-proxy-info -all
-voms-proxy-info -all -file x509up 
+voms-proxy-info -all -file x509up
 
 # setup CMSSW
 echo "Setting up ${CMSSW_VERSION}"
@@ -32,8 +37,6 @@ scramv1 project CMSSW ${CMSSW_VERSION}
 cd ${CMSSW_VERSION}/src
 eval `scramv1 runtime -sh`
 echo "CMSSW should now be available."
-#export LD_LIBRARY_PATH=${UPDATE_PATH}/lib:${UPDATE_PATH}/lib64:${LD_LIBRARY_PATH}
-#export PATH=${UPDATE_PATH}/bin:${PATH}
 
 # Prepare EDMAnalyzer
 echo "Preparing EDMAnalyzer"
@@ -46,7 +49,7 @@ cd ${CMSSW_BASE}/src
 scram b -j4
 ls ${PWD}
 
-if [[ ${FILE} == *"Run2012"* ]]; then
+if [[ ${FILE} == *"Run"* ]]; then
     CONFIG=${CMSSW_BASE}/src/workspace/AOD2NanoAOD/configs/data_cfg.py
 else
     CONFIG=${CMSSW_BASE}/src/workspace/AOD2NanoAOD/configs/simulation_cfg.py
@@ -78,8 +81,33 @@ cp $CONFIG $CONFIG_COPY
 sed -i -e "s,^files =,files = ['"${FILE}"'] #,g" $CONFIG_COPY
 sed -i -e 's,^files.extend,#files.extend,g' $CONFIG_COPY
 
+# Modify globaltag for realistic analysis application
+if [[ ${GT} != "None" ]]; then
+    echo "Using Global Tag: XX_GLOBALTAG_XX"
+
+    # enable globaltag
+    sed -i -e 's,#process.load(,process.load(,g' $CONFIG_COPY
+    #sed -i -e 's,#process.GlobalTag.connect,process.GlobalTag.connect,g' $CONFIG_COPY
+    sed -i -e 's,#process.GlobalTag.globaltag,process.GlobalTag.globaltag,g' $CONFIG_COPY
+    sed -i -e 's,USEGLOBALTAG,XX_GLOBALTAG_XX,g' $CONFIG_COPY
+
+    # symbolic link to cond-db
+    #http://opendata.cern.ch/docs/cms-guide-for-condition-database
+    # ONLY for 8TeV DATA
+    if [[ ${FILE} == *"Run2012"* ]]; then
+	ln -sf /cvmfs/cms-opendata-conddb.cern.ch/FT53_V21A_AN6_FULL FT53_V21A_AN6_FULL
+	ln -sf /cvmfs/cms-opendata-conddb.cern.ch/FT53_V21A_AN6_FULL FT53_V21A_AN6
+	ln -sf /cvmfs/cms-opendata-conddb.cern.ch/FT53_V21A_AN6_FULL.db FT53_V21A_AN6_FULL.db
+    else
+	ln -sf /cvmfs/cms-opendata-conddb.cern.ch/XX_GLOBALTAG_XX XX_GLOBALTAG_XX
+	ln -sf /cvmfs/cms-opendata-conddb.cern.ch/XX_GLOBALTAG_XX.db XX_GLOBALTAG_XX.db
+    fi
+fi
+
 # Modify CMSSW config to read lumi mask from EOS
-#sed -i -e 's,data/Cert,'${CMSSW_BASE}'/src/workspace/AOD2NanoAOD/data/Cert,g' $CONFIG_COPY
+if [[ ${FILE} == *"Run"* ]]; then
+    sed -i -e 's,data/Cert,'${CMSSW_BASE}'/src/workspace/AOD2NanoAOD/data/Cert,g' $CONFIG_COPY
+fi
 
 # Modify config to write output directly to EOS
 sed -i -e 's,output.root,'${PROCESS}_${ID}.root',g' $CONFIG_COPY
@@ -91,8 +119,6 @@ cat $CONFIG_COPY
 cmsRun $CONFIG_COPY
 
 # Copy output file
-# root://eosuser.cern.ch//eos/user/s/shoh/opendata_files/README.md
-# root://cmseos.fnal.gov//store/user/shoh/nanoaod/${PROCESS}/${outfilename}_nanoaod.root
 ls -trlh .
 pwd
 xrdcp -f ${PROCESS}_${ID}.root root://eosuser.cern.ch/${OUTPUT_DIR}/${PROCESS}/${PROCESS}_${ID}.root
