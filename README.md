@@ -1,5 +1,5 @@
 # production
-production script for cms opendata
+production script for cms opendata (frome AOD --> NanoAOD)
 # setup
 ```
 git clone --recursive git@github.com:UKM-HEP/production.git
