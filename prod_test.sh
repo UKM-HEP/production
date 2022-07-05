@@ -40,31 +40,8 @@ tar -chzf AOD2NanoAOD.tgz AOD2NanoAOD
 
 # Set processes
 PROCESSES=( \
-    #SMHiggsToZZTo4L \
-    #ZZTo2e2mu \
-    #ZZTo4mu \
-    #ZZTo4e \
-    #GluGluToHToTauTau \
-    #VBF_HToTauTau \
-    #TTbar \
-    #W1JetsToLNu \
-    #W2JetsToLNu \
-    #W3JetsToLNu \
-    #DYJetsToLL \
-    #Run2012B_TauPlusX\
-    #Run2012C_TauPlusX\
-    #DY2JetsToLL \
-    #DY3JetsToLL \
-    #DY4JetsToLL \
-    #Run2012B_SingleMu\
-    #Run2012C_SingleMu\
-    #Run2012B_DoubleMuParked \
-    #Run2012C_DoubleMuParked \
-    #Run2012B_DoubleElectron \
-    #Run2012C_DoubleElectron \
-    #test_ZZTo4e_8TeV-powheg-pythia6_onefile \
-    Run2012B_DoubleElectro_test_onefile \
-    test_ZZTo4e_8TeV-powheg-pythia6_onefile \
+    DYJetsToLL_M-50_test \
+    Run2012B_SingleElectron_test \
     )
 
 # Create JDL files and job directories
