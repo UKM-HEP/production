@@ -16,7 +16,7 @@ GLOBALTAG="True"
 COM="8TeV"
 
 # Production name
-PRODNAME="production_test"
+PRODNAME="prod_test"
 
 CWD=${PWD}
 
