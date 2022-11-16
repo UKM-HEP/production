@@ -83,30 +83,42 @@ sed -i -e 's,^files.extend,#files.extend,g' $CONFIG_COPY
 
 # Modify globaltag for realistic analysis application
 if [[ ${GT} != "None" ]]; then
+    
     echo "Using Global Tag: XX_GLOBALTAG_XX"
 
     # enable globaltag
     sed -i -e 's,#process.load(,process.load(,g' $CONFIG_COPY
-    #sed -i -e 's,#process.GlobalTag.connect,process.GlobalTag.connect,g' $CONFIG_COPY
+    sed -i -e 's,#process.GlobalTag.connect,process.GlobalTag.connect,g' $CONFIG_COPY
     sed -i -e 's,#process.GlobalTag.globaltag,process.GlobalTag.globaltag,g' $CONFIG_COPY
     sed -i -e 's,USEGLOBALTAG,XX_GLOBALTAG_XX,g' $CONFIG_COPY
 
     # symbolic link to cond-db
-    #http://opendata.cern.ch/docs/cms-guide-for-condition-database
+    # http://opendata.cern.ch/docs/cms-guide-for-condition-database
     # ONLY for 8TeV DATA
     if [[ ${FILE} == *"Run2012"* ]]; then
-	ln -sf /cvmfs/cms-opendata-conddb.cern.ch/FT53_V21A_AN6_FULL FT53_V21A_AN6_FULL
+
+	GT_XFULL=$(basename XX_GLOBALTAG_XX _FULL )
+	sed -i -e 's,XX_GLOBALTAG_XX::All,'${GT_XFULL}'::All,g' $CONFIG_COPY
+	
 	ln -sf /cvmfs/cms-opendata-conddb.cern.ch/FT53_V21A_AN6_FULL FT53_V21A_AN6
 	ln -sf /cvmfs/cms-opendata-conddb.cern.ch/FT53_V21A_AN6_FULL.db FT53_V21A_AN6_FULL.db
+	ln -sf /cvmfs/cms-opendata-conddb.cern.ch/FT53_V21A_AN6_FULL FT53_V21A_AN6_FULL
     else
-	ln -sf /cvmfs/cms-opendata-conddb.cern.ch/XX_GLOBALTAG_XX XX_GLOBALTAG_XX
-	ln -sf /cvmfs/cms-opendata-conddb.cern.ch/XX_GLOBALTAG_XX.db XX_GLOBALTAG_XX.db
+        ln -sf /cvmfs/cms-opendata-conddb.cern.ch/XX_GLOBALTAG_XX XX_GLOBALTAG_XX
+        ln -sf /cvmfs/cms-opendata-conddb.cern.ch/XX_GLOBALTAG_XX.db XX_GLOBALTAG_XX.db
     fi
 fi
 
 # Modify CMSSW config to read lumi mask from EOS
 if [[ ${FILE} == *"Run"* ]]; then
-    sed -i -e 's,data/Cert,'${CMSSW_BASE}'/src/workspace/AOD2NanoAOD/data/Cert,g' $CONFIG_COPY
+
+    if [[ ${FILE} == *"Run2012"* ]]; then
+	# 8TeV
+	sed -i -e 's,USECERTIFICATEHERE,'${CMSSW_BASE}'/src/workspace/AOD2NanoAOD/data/Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON.txt,g' $CONFIG_COPY
+    else
+	# 7TeV
+	sed -i -e 's,USECERTIFICATEHERE,'${CMSSW_BASE}'/src/workspace/AOD2NanoAOD/data/Cert_160404-180252_7TeV_ReRecoNov08_Collisions11_JSON.txt,g' $CONFIG_COPY
+    fi
 fi
 
 # Modify config to write output directly to EOS
@@ -121,6 +133,7 @@ cmsRun $CONFIG_COPY
 # Copy output file
 ls -trlh .
 pwd
+echo "COPY OUTPUT FILE ${PROCESS}_${ID}.root --> root://eosuser.cern.ch/${OUTPUT_DIR}/${PROCESS}/${PROCESS}_${ID}.root"
 xrdcp -f ${PROCESS}_${ID}.root root://eosuser.cern.ch/${OUTPUT_DIR}/${PROCESS}/${PROCESS}_${ID}.root
 rm ${PROCESS}_${ID}.root
 

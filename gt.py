@@ -13,7 +13,7 @@ globaltag = {
     },
     
     '2012pp' : {
-        'DATA' : 'FT53_V21A_AN6',
+        'DATA' : 'FT53_V21A_AN6_FULL',
         'MC'   : 'START53_V27'
         },
     
