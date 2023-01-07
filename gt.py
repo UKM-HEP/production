@@ -8,7 +8,7 @@ globaltag = {
         },
     
     '2011pp' : {
-        'DATA' : 'FT_53_LV5_AN1_RUNA',
+        'DATA' : 'FT_53_LV5_AN1',
         'MC'   : 'START53_LV6A1'
     },
     
