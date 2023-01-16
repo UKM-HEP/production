@@ -24,7 +24,7 @@ CWD=${PWD}
 BASE_PATH="${PWD}/${PRODNAME}"
 mkdir -p $BASE_PATH
 
-#voms-proxy-init -voms cms -valid 172:00
+voms-proxy-init -voms cms -valid 172:00
 
 if [ -e "${PWD}/AOD2NanoAOD" ];then
     cd AOD2NanoAOD
@@ -40,14 +40,18 @@ tar -chzf AOD2NanoAOD.tgz AOD2NanoAOD
 
 # Set processes
 PROCESSES=( \
-    Run2012B_SingleElectron \
-    Run2012C_SingleElectron \
+    #Run2012B_SingleElectron \
+    #Run2012C_SingleElectron \
+    Run2012A_SingleMu \
     Run2012B_SingleMu \
     Run2012C_SingleMu \
-    Run2012B_DoubleElectron \
-    Run2012C_DoubleElectron \
-    Run2012B_DoubleMuParked \
-    Run2012C_DoubleMuParked \
+    Run2012A_SingleElectron \
+    Run2012B_SingleElectron \
+    Run2012C_SingleElectron \
+    #Run2012B_DoubleElectron \
+    #Run2012C_DoubleElectron \
+    #Run2012B_DoubleMuParked \
+    #Run2012C_DoubleMuParked \
     DYJetsToLL_M-50_TuneZ2Star \
     )
 
@@ -60,12 +64,12 @@ do
 done
 
 # Submit jobs
-#THIS_PWD=$PWD
-#for PROCESS in ${PROCESSES[@]}
-#do
-#    cd $BASE_PATH/$PROCESS
-#    condor_submit job.jdl
-#    cd $THIS_PWD
-#done
+THIS_PWD=$PWD
+for PROCESS in ${PROCESSES[@]}
+do
+    cd $BASE_PATH/$PROCESS
+    condor_submit job.jdl
+    cd $THIS_PWD
+done
 
 rm -rf AOD2NanoAOD  AOD2NanoAOD.tgz
