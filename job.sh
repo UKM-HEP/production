@@ -122,7 +122,7 @@ if [[ ${FILE} == *"Run"* ]]; then
 fi
 
 # Modify CMSSW config to read hltlist
-if [[ ${TEXT_FILES} == *"2011"* ]]; then
+if [[ ${FILE} == *"2011"* ]]; then
         sed -i -e 's,USEHLTLISTHERE,'${CMSSW_BASE}'/src/workspace/AOD2NanoAOD/data/HLT/HLT_Lepton_7TeV.txt,g' $CONFIG_COPY
     else
         sed -i -e 's,USEHLTLISTHERE,'${CMSSW_BASE}'/src/workspace/AOD2NanoAOD/data/HLT/HLT_Lepton_8TeV.txt,g' $CONFIG_COPY

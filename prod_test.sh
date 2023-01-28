@@ -13,7 +13,7 @@ GLOBALTAG="True"
 # 7TeV
 # 8TeV
 # 13TeV
-COM="8TeV"
+COM="7TeV"
 
 # Production name
 PRODNAME="prod_test"
@@ -40,8 +40,10 @@ tar -chzf AOD2NanoAOD.tgz AOD2NanoAOD
 
 # Set processes
 PROCESSES=( \
-    DYJetsToLL_M-50_test \
-    Run2012B_SingleElectron_test \
+    JPsiToMuMu_2MuPEtaFilter_test \
+    Run2011A_MuOnia_test \
+    #DYJetsToLL_M-50_test \
+    #Run2012B_SingleElectron_test \
     )
 
 # Create JDL files and job directories
